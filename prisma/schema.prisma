@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SendType {
+  BIRTHDAY_MONTH
+  BIRTHDAY_DAY
+}
+
+enum SendStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model Parent {
+  id                       String         @id @default(cuid())
+  firstName                String
+  lastName                 String?
+  email                    String         @unique
+  active                   Boolean        @default(true)
+  consentAt                DateTime?
+  consentSource            String?
+  managementTokenHash      String?        @unique
+  managementTokenCreatedAt DateTime?
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  children                 Child[]
+  sends                    BirthdaySend[]
+
+  @@index([active])
+  @@map("parents")
+}
+
+model Child {
+  id         String         @id @default(cuid())
+  parentId   String
+  parent     Parent         @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  firstName  String?
+  birthMonth Int
+  birthDay   Int
+  active     Boolean        @default(true)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  sends      BirthdaySend[]
+
+  @@index([parentId])
+  @@index([active, birthMonth, birthDay])
+  @@map("children")
+}
+
+model BirthdaySend {
+  id               String     @id @default(cuid())
+  childId          String
+  child            Child      @relation(fields: [childId], references: [id], onDelete: Cascade)
+  parentId         String
+  parent           Parent     @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  type             SendType
+  occurrenceYear   Int
+  status           SendStatus @default(PENDING)
+  providerResponse Json?
+  errorMessage     String?
+  attemptedAt      DateTime
+  sentAt           DateTime?
+  createdAt        DateTime   @default(now())
+
+  @@unique([childId, type, occurrenceYear])
+  @@index([parentId])
+  @@index([status, type, occurrenceYear])
+  @@map("birthday_sends")
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
+}
+
+model RateLimitBucket {
+  key       String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
+  @@map("rate_limit_buckets")
+}

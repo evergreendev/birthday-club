@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Birthday Club
 
-## Getting Started
+Next.js App Router application for birthday club signup, secure family
+management links, administrator management, and Mailchimp Customer Journey
+triggers.
 
-First, run the development server:
+## Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+DATABASE_URL=
+AUTH_SECRET=
+APP_URL=
+ADMIN_EMAIL=
+ADMIN_PASSWORD_HASH=
+MAILCHIMP_API_KEY=
+MAILCHIMP_SERVER_PREFIX=us10
+CRON_SECRET=
+```
 
-## Learn More
+Create the first admin password hash:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run admin:hash-password -- "replace-with-a-strong-password"
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Use the escaped `.env` value printed by the script when writing to a local
+Next.js `.env` file. Bcrypt hashes contain `$`, and Next.js expands `$...` in
+`.env` files unless the dollar signs are escaped. In hosting dashboards, use the
+raw hash as the `ADMIN_PASSWORD_HASH` value. `AUTH_SECRET` is required by Auth.js
+for secure admin session cookies.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database
 
-## Deploy on Vercel
+This project uses Prisma 7 with PostgreSQL.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run prisma:generate
+npm run prisma:migrate
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The initial migration creates parents, children, birthday send history,
+settings, and rate-limit buckets. Parent email is normalized and unique. Send
+records are unique by child, send type, and occurrence year.
+
+## Mailchimp
+
+Configure these in `/admin/birthday-club/settings`:
+
+- Birthday-month Customer Journey trigger URL
+- Birthday-day Customer Journey trigger URL
+- Optional Mailchimp audience/list ID
+- Birthday-month send day
+- Application timezone
+- Consent disclosure text
+- Automated sends enabled/disabled
+
+The Mailchimp API key is stored only in `MAILCHIMP_API_KEY`, never in
+`AppSetting`. Trigger URLs must be HTTPS and must target the configured
+`{MAILCHIMP_SERVER_PREFIX}.api.mailchimp.com` Customer Journey trigger path.
+
+If an audience ID is configured, signup ensures the parent exists as a
+subscribed audience member. Existing `unsubscribed`, `cleaned`, and `pending`
+contacts are not silently resubscribed.
+
+Test triggers require typing `TEST` and send to `ADMIN_EMAIL`.
+
+## Daily Cron
+
+Schedule a daily `POST` to:
+
+```text
+/api/cron/birthdays
+```
+
+Send the secret as a bearer token:
+
+```text
+Authorization: Bearer <CRON_SECRET>
+```
+
+Do not send `CRON_SECRET` in the query string.
+
+## Duplicate Protection
+
+Cron claims send records before calling Mailchimp. The database unique
+constraint on `(childId, type, occurrenceYear)` prevents duplicate records under
+repeated or concurrent cron invocations.
+
+Birthday-month emails are grouped so one parent receives one identical monthly
+email for children in the same birthday month. Birthday-day emails are grouped
+the same way when siblings share the same birthday. Additional child records are
+marked `SKIPPED` where needed to prevent later duplicate triggers.
+
+Manual retries are available for failed sends. Retrying after an ambiguous
+network timeout can duplicate the external Mailchimp trigger because the
+Customer Journey endpoint does not provide an idempotency key here.
+
+## Parent Management Links
+
+Family management lives at `/family/[token]`. Tokens use at least 32 random
+bytes encoded URL-safe. Only the SHA-256 hash is stored. Admins can generate a
+fresh link from a parent detail page; the raw link is shown once and the
+previous link is invalidated.
+
+## February 29 Policy
+
+February 29 birthday-day emails are sent on February 28 in non-leap years. In
+leap years, they are sent on February 29.
+
+## Verification
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+No formatter is currently configured in this project.
