@@ -103,6 +103,16 @@ export async function registerFamily(input: {
     return parentRecord;
   });
 
+  if (settings.signupTriggerUrl) {
+    const signupEmail = await triggerCustomerJourney(
+      settings.signupTriggerUrl,
+      input.email,
+    );
+    if (!signupEmail.ok) {
+      throw new Error("Could not send the Birthday Club signup email.");
+    }
+  }
+
   return {
     parent,
     createdManagementToken: !parent.managementTokenHash ? rawToken : null,

@@ -28,6 +28,7 @@ export async function saveSettingsAction(
   void state;
   await requireAdmin();
   const parsed = settingsSchema.safeParse({
+    signupTriggerUrl: formData.get("signupTriggerUrl"),
     monthTriggerUrl: formData.get("monthTriggerUrl"),
     dayTriggerUrl: formData.get("dayTriggerUrl"),
     audienceId: formData.get("audienceId"),
@@ -40,6 +41,9 @@ export async function saveSettingsAction(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
 
   try {
+    if (parsed.data.signupTriggerUrl) {
+      validateMailchimpTriggerUrl(parsed.data.signupTriggerUrl);
+    }
     if (parsed.data.monthTriggerUrl) {
       validateMailchimpTriggerUrl(parsed.data.monthTriggerUrl);
     }
@@ -51,6 +55,7 @@ export async function saveSettingsAction(
   }
 
   await saveSettings({
+    signupTriggerUrl: parsed.data.signupTriggerUrl ?? "",
     monthTriggerUrl: parsed.data.monthTriggerUrl ?? "",
     dayTriggerUrl: parsed.data.dayTriggerUrl ?? "",
     audienceId: parsed.data.audienceId ?? "",
@@ -193,7 +198,7 @@ export async function retrySendAction(sendId: string) {
 }
 
 export async function testJourneyAction(
-  type: "month" | "day",
+  type: "signup" | "month" | "day",
   state: AdminState,
   formData: FormData,
 ): Promise<AdminState> {
@@ -204,7 +209,12 @@ export async function testJourneyAction(
   }
 
   const settings = await getSettings();
-  const url = type === "month" ? settings.monthTriggerUrl : settings.dayTriggerUrl;
+  const url =
+    type === "signup"
+      ? settings.signupTriggerUrl
+      : type === "month"
+        ? settings.monthTriggerUrl
+        : settings.dayTriggerUrl;
   if (!url) return { error: "No trigger URL is configured." };
   const email = process.env.ADMIN_EMAIL;
   if (!email) return { error: "ADMIN_EMAIL is not configured." };

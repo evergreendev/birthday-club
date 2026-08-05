@@ -42,6 +42,7 @@ export const parentSchema = z.object({
 });
 
 export const settingsSchema = z.object({
+  signupTriggerUrl: z.string().trim().url().optional().or(z.literal("")),
   monthTriggerUrl: z.string().trim().url().optional().or(z.literal("")),
   dayTriggerUrl: z.string().trim().url().optional().or(z.literal("")),
   audienceId: z.string().trim().max(120).optional().or(z.literal("")),

@@ -54,6 +54,7 @@ records are unique by child, send type, and occurrence year.
 
 Configure these in `/admin/birthday-club/settings`:
 
+- Signup email Customer Journey trigger URL
 - Birthday-month Customer Journey trigger URL
 - Birthday-day Customer Journey trigger URL
 - Optional Mailchimp audience/list ID

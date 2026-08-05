@@ -101,6 +101,7 @@ export function SettingsForm({
   settings,
 }: {
   settings: {
+    signupTriggerUrl: string;
     monthTriggerUrl: string;
     dayTriggerUrl: string;
     audienceId: string;
@@ -117,6 +118,10 @@ export function SettingsForm({
 
   return (
     <form action={action} className="space-y-5">
+      <label className="block text-sm font-medium">
+        Signup email trigger URL
+        <input name="signupTriggerUrl" defaultValue={settings.signupTriggerUrl} className="mt-2 w-full rounded-md border border-zinc-300 px-3 py-2" />
+      </label>
       <label className="block text-sm font-medium">
         Birthday-month trigger URL
         <input name="monthTriggerUrl" defaultValue={settings.monthTriggerUrl} className="mt-2 w-full rounded-md border border-zinc-300 px-3 py-2" />
@@ -156,7 +161,7 @@ export function SettingsForm({
   );
 }
 
-export function TestJourneyForm({ type }: { type: "month" | "day" }) {
+export function TestJourneyForm({ type }: { type: "signup" | "month" | "day" }) {
   const [state, action, pending] = useActionState<AdminState, FormData>(
     testJourneyAction.bind(null, type),
     {},
@@ -165,7 +170,7 @@ export function TestJourneyForm({ type }: { type: "month" | "day" }) {
   return (
     <form action={action} className="space-y-3 rounded-lg border border-zinc-200 bg-white p-4">
       <h3 className="font-medium">
-        Test {type === "month" ? "birthday-month" : "birthday-day"} journey
+        Test {type === "signup" ? "signup email" : type === "month" ? "birthday-month" : "birthday-day"} journey
       </h3>
       <input
         name="confirm"

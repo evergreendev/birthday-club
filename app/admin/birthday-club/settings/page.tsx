@@ -18,7 +18,8 @@ export default async function SettingsPage() {
       <section className="rounded-lg border border-zinc-200 bg-white p-5">
         <SettingsForm settings={settings} />
       </section>
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid gap-4 lg:grid-cols-3">
+        <TestJourneyForm type="signup" />
         <TestJourneyForm type="month" />
         <TestJourneyForm type="day" />
       </section>

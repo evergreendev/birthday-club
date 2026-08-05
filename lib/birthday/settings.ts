@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 export const SETTING_KEYS = {
+  signupTriggerUrl: "mailchimp.signupTriggerUrl",
   monthTriggerUrl: "mailchimp.birthdayMonthTriggerUrl",
   dayTriggerUrl: "mailchimp.birthdayDayTriggerUrl",
   audienceId: "mailchimp.audienceId",
@@ -11,6 +12,7 @@ export const SETTING_KEYS = {
 } as const;
 
 export type BirthdayClubSettings = {
+  signupTriggerUrl: string;
   monthTriggerUrl: string;
   dayTriggerUrl: string;
   audienceId: string;
@@ -24,6 +26,7 @@ const DEFAULT_CONSENT =
   "I agree to receive birthday club emails related to my child or children. I understand I can unsubscribe from marketing emails at any time.";
 
 export const DEFAULT_SETTINGS: BirthdayClubSettings = {
+  signupTriggerUrl: "",
   monthTriggerUrl: "",
   dayTriggerUrl: "",
   audienceId: "",
@@ -40,6 +43,8 @@ export async function getSettings(): Promise<BirthdayClubSettings> {
   const sendDay = Number(map.get(SETTING_KEYS.birthdayMonthSendDay));
 
   return {
+    signupTriggerUrl:
+      map.get(SETTING_KEYS.signupTriggerUrl) ?? DEFAULT_SETTINGS.signupTriggerUrl,
     monthTriggerUrl:
       map.get(SETTING_KEYS.monthTriggerUrl) ?? DEFAULT_SETTINGS.monthTriggerUrl,
     dayTriggerUrl:
@@ -59,6 +64,7 @@ export async function getSettings(): Promise<BirthdayClubSettings> {
 export async function saveSettings(settings: BirthdayClubSettings) {
   await prisma.$transaction(
     Object.entries({
+      [SETTING_KEYS.signupTriggerUrl]: settings.signupTriggerUrl,
       [SETTING_KEYS.monthTriggerUrl]: settings.monthTriggerUrl,
       [SETTING_KEYS.dayTriggerUrl]: settings.dayTriggerUrl,
       [SETTING_KEYS.audienceId]: settings.audienceId,
