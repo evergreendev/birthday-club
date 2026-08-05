@@ -22,14 +22,13 @@ export type CronSummary = {
   disabled: boolean;
 };
 
-export async function registerFamily(input: {
+export async function syncSignupWithMailchimp(input: {
   parentFirstName: string;
   parentLastName: string;
   email: string;
-  children: ChildInput[];
-  consentSource: string;
 }) {
   const settings = await getSettings();
+
   if (settings.audienceId) {
     const audience = await ensureAudienceMember(settings.audienceId, {
       email: input.email,
@@ -41,6 +40,24 @@ export async function registerFamily(input: {
     }
   }
 
+  if (settings.signupTriggerUrl) {
+    const signupEmail = await triggerCustomerJourney(
+      settings.signupTriggerUrl,
+      input.email,
+    );
+    if (!signupEmail.ok) {
+      throw new Error("Could not send the Birthday Club signup email.");
+    }
+  }
+}
+
+export async function registerFamily(input: {
+  parentFirstName: string;
+  parentLastName: string;
+  email: string;
+  children: ChildInput[];
+  consentSource: string;
+}) {
   const rawToken = generateManagementToken();
   const now = new Date();
 
@@ -102,16 +119,6 @@ export async function registerFamily(input: {
 
     return parentRecord;
   });
-
-  if (settings.signupTriggerUrl) {
-    const signupEmail = await triggerCustomerJourney(
-      settings.signupTriggerUrl,
-      input.email,
-    );
-    if (!signupEmail.ok) {
-      throw new Error("Could not send the Birthday Club signup email.");
-    }
-  }
 
   return {
     parent,

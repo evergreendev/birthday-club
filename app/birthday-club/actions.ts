@@ -1,8 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { assertRateLimit, requestIp } from "@/lib/birthday/rate-limit";
-import { registerFamily } from "@/lib/birthday/service";
+import {
+  registerFamily,
+  syncSignupWithMailchimp,
+} from "@/lib/birthday/service";
 import { parseChildrenFromForm, signupSchema } from "@/lib/birthday/validation";
 
 export type SignupState = {
@@ -39,12 +43,22 @@ export async function signupAction(
     };
   }
 
-  await registerFamily({
+  const registration = {
     parentFirstName: parsed.data.parentFirstName,
     parentLastName: parsed.data.parentLastName,
     email: parsed.data.email,
     children: parsed.data.children,
     consentSource: "public-signup",
+  };
+
+  await registerFamily(registration);
+
+  after(async () => {
+    try {
+      await syncSignupWithMailchimp(registration);
+    } catch (error) {
+      console.error("[birthday-club] Post-signup Mailchimp sync failed.", error);
+    }
   });
 
   redirect("/birthday-club/success");
