@@ -75,9 +75,11 @@ If an audience ID is configured, signup ensures the parent exists as a
 subscribed audience member. Existing `unsubscribed`, `cleaned`, and `pending`
 contacts are not silently resubscribed.
 
-Audience synchronization and the signup journey run after the signup response
-so a slow Mailchimp request cannot prevent the success-page redirect. Failures
-are written to the application log as post-signup Mailchimp sync errors.
+Audience synchronization and the signup journey run as background work after
+the family is saved, while the browser performs a normal success-page
+navigation. This avoids holding a proxied Server Action open for Mailchimp or a
+streamed redirect. Failures are written to the application log as post-signup
+Mailchimp sync errors.
 
 Test triggers require typing `TEST` and send to `ADMIN_EMAIL`.
 

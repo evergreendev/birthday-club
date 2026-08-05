@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { signupAction, type SignupState } from "@/app/birthday-club/actions";
 
 const months = [
@@ -25,6 +25,12 @@ export function SignupForm({ consentText }: { consentText: string }) {
   );
   const [children, setChildren] = useState([0]);
   const nextIndex = children.length ? Math.max(...children) + 1 : 0;
+
+  useEffect(() => {
+    if (state.signedUp) {
+      window.location.assign("/birthday-club/success");
+    }
+  }, [state.signedUp]);
 
   return (
     <form action={action} className="space-y-7">

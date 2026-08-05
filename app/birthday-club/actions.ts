@@ -1,7 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import { after } from "next/server";
 import { assertRateLimit, requestIp } from "@/lib/birthday/rate-limit";
 import {
   registerFamily,
@@ -11,6 +9,7 @@ import { parseChildrenFromForm, signupSchema } from "@/lib/birthday/validation";
 
 export type SignupState = {
   error?: string;
+  signedUp?: boolean;
 };
 
 export async function signupAction(
@@ -53,13 +52,9 @@ export async function signupAction(
 
   await registerFamily(registration);
 
-  after(async () => {
-    try {
-      await syncSignupWithMailchimp(registration);
-    } catch (error) {
+  void syncSignupWithMailchimp(registration).catch((error) => {
       console.error("[birthday-club] Post-signup Mailchimp sync failed.", error);
-    }
   });
 
-  redirect("/birthday-club/success");
+  return { signedUp: true };
 }
