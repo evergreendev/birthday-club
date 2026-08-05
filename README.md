@@ -38,6 +38,8 @@ Next.js `.env` file. Bcrypt hashes contain `$`, and Next.js expands `$...` in
 raw hash as the `ADMIN_PASSWORD_HASH` value. `AUTH_SECRET` is required by Auth.js
 for secure admin session cookies. Set `AUTH_URL` to the public production origin;
 `APP_URL` is used for application-generated links and is not read by Auth.js.
+The application accepts either raw or `.env`-escaped bcrypt hashes, but the
+stored hash must otherwise retain its complete 60-character bcrypt value.
 
 ## Database
 
