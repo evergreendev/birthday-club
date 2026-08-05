@@ -10,7 +10,7 @@ export default async function BirthdayClubDashboard() {
   const settings = await getSettings();
   const current = localDateParts(new Date(), settings.timezone);
   const [parents, children, recentSuccess, recentFailures, upcoming] =
-    await Promise.all([
+    await prisma.$transaction([
       prisma.parent.count({ where: { active: true } }),
       prisma.child.count({ where: { active: true, parent: { active: true } } }),
       prisma.birthdaySend.findMany({
