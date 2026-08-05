@@ -1,12 +1,12 @@
 "use server";
 
 import { AuthError } from "next-auth";
-import { redirect } from "next/navigation";
 import { signIn, signOut } from "@/auth";
 import { assertRateLimit, requestIp } from "@/lib/birthday/rate-limit";
 
 export type LoginState = {
   error?: string;
+  signedIn?: boolean;
 };
 
 export async function loginAction(
@@ -15,11 +15,19 @@ export async function loginAction(
 ): Promise<LoginState> {
   try {
     await assertRateLimit("admin-login", await requestIp(), 5, 60);
-    await signIn("credentials", {
+    const result = await signIn("credentials", {
       email: String(formData.get("email") ?? ""),
       password: String(formData.get("password") ?? ""),
       redirectTo: "/admin/birthday-club",
+      redirect: false,
     });
+
+    const resultUrl = new URL(String(result), "http://localhost");
+    if (resultUrl.searchParams.has("error")) {
+      return { error: "Invalid administrator credentials." };
+    }
+
+    return { signedIn: true };
   } catch (error) {
     if (error instanceof AuthError) {
       return { error: "Invalid administrator credentials." };
@@ -30,7 +38,6 @@ export async function loginAction(
     throw error;
   }
 
-  redirect("/admin/birthday-club");
 }
 
 export async function logoutAction() {

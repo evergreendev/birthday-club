@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { loginAction, type LoginState } from "@/app/admin/login/actions";
 
 export function LoginForm() {
@@ -8,6 +8,12 @@ export function LoginForm() {
     loginAction,
     {},
   );
+
+  useEffect(() => {
+    if (state.signedIn) {
+      window.location.assign("/admin/birthday-club");
+    }
+  }, [state.signedIn]);
 
   return (
     <form action={action} className="space-y-5">
