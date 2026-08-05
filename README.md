@@ -17,6 +17,7 @@ Open http://localhost:3000.
 ```bash
 DATABASE_URL=
 AUTH_SECRET=
+AUTH_URL=https://birthdayclub.example.com
 APP_URL=
 ADMIN_EMAIL=
 ADMIN_PASSWORD_HASH=
@@ -35,7 +36,8 @@ Use the escaped `.env` value printed by the script when writing to a local
 Next.js `.env` file. Bcrypt hashes contain `$`, and Next.js expands `$...` in
 `.env` files unless the dollar signs are escaped. In hosting dashboards, use the
 raw hash as the `ADMIN_PASSWORD_HASH` value. `AUTH_SECRET` is required by Auth.js
-for secure admin session cookies.
+for secure admin session cookies. Set `AUTH_URL` to the public production origin;
+`APP_URL` is used for application-generated links and is not read by Auth.js.
 
 ## Database
 

@@ -9,6 +9,9 @@ const credentialsSchema = z.object({
 });
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  // Production runs behind the site's reverse proxy. Auth.js requires the
+  // forwarded Host header to be explicitly trusted outside supported hosts.
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: {
     signIn: "/admin/login",
