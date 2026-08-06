@@ -51,7 +51,7 @@ export default function BirthdayClubSuccessPage() {
 
         <div className="relative mt-4 h-48 sm:h-64">
           <Image
-            src="/PARTY.jpg"
+            src="/sign-up.jpg"
             alt="Children celebrating with colorful balloons and party hats"
             fill
             priority

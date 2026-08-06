@@ -30,7 +30,7 @@ export default async function BirthdayClubPage() {
             </div>
             <div className="relative min-h-64 sm:min-h-80 lg:min-h-96">
               <Image
-                src="/PARTY.jpg"
+                src="/sign-up.jpg"
                 alt="Children celebrating a birthday with colorful balloons and party hats"
                 fill
                 priority
